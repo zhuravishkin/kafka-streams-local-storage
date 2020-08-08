@@ -33,9 +33,6 @@ class KafkaStreamsTopologyTest {
     @Autowired
     private StreamsBuilder streamsBuilder;
     private String inputString;
-    private String inputTopicName;
-    private String outputTopicName;
-    private TopologyTestDriver topologyTestDriver;
     private TestInputTopic<String, String> inputTopic;
     private TestOutputTopic<String, String> outputTopic;
 
@@ -49,9 +46,9 @@ class KafkaStreamsTopologyTest {
 
     @BeforeEach
     void setUp() {
-        inputTopicName = UUID.randomUUID().toString();
-        outputTopicName = UUID.randomUUID().toString();
-        topologyTestDriver = new TopologyTestDriver(
+        String inputTopicName = UUID.randomUUID().toString();
+        String outputTopicName = UUID.randomUUID().toString();
+        TopologyTestDriver topologyTestDriver = new TopologyTestDriver(
                 kafkaStreamsTopology.kStream(streamsBuilder, inputTopicName, outputTopicName),
                 kafkaStreamsConfiguration.asProperties()
         );
