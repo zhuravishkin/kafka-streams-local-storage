@@ -32,7 +32,7 @@ public class KafkaStreamsService {
     }
 
     public void streamsStart(Properties properties) {
-        kafkaStreamsTopology.kStream(streamsBuilder);
+        kafkaStreamsTopology.kStream(streamsBuilder, "src-topic", "out-topic");
         KafkaStreams kafkaStreams = new KafkaStreams(streamsBuilder.build(properties),
                 kafkaStreamsConfiguration.asProperties());
         kafkaStreams.start();

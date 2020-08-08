@@ -23,11 +23,11 @@ public class KafkaStreamsTopology {
         this.userSerde = userSerde;
     }
 
-    public Topology kStream(StreamsBuilder kStreamBuilder) {
+    public Topology kStream(StreamsBuilder kStreamBuilder, String inputTopicName, String outputTopicName) {
         kStreamBuilder
-                .stream("src-topic", Consumed.with(Serdes.String(), Serdes.String()))
+                .stream(inputTopicName, Consumed.with(Serdes.String(), Serdes.String()))
                 .mapValues(this::getUserFromString)
-                .to("out-topic", Produced.with(Serdes.String(), userSerde));
+                .to(outputTopicName, Produced.with(Serdes.String(), userSerde));
         return kStreamBuilder.build();
     }
 
