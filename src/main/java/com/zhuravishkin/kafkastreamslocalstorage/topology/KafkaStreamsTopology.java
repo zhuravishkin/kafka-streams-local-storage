@@ -9,6 +9,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class KafkaStreamsTopology {
     private final ObjectMapper objectMapper;
     private final Serde<User> userSerde;
+    private final KeyValueMapper<String, User, String> numberAsKey = (key, value) -> value.getPhoneNumber();
 
     public KafkaStreamsTopology(ObjectMapper objectMapper, Serde<User> userSerde) {
         this.objectMapper = objectMapper;
@@ -27,11 +29,12 @@ public class KafkaStreamsTopology {
         kStreamBuilder
                 .stream(inputTopicName, Consumed.with(Serdes.String(), Serdes.String()))
                 .mapValues(this::getUserFromString)
+                .selectKey(numberAsKey)
                 .to(outputTopicName, Produced.with(Serdes.String(), userSerde));
         return kStreamBuilder.build();
     }
 
-    User getUserFromString(String userString) {
+    public User getUserFromString(String userString) {
         User user = null;
         try {
             user = objectMapper.readValue(userString, User.class);

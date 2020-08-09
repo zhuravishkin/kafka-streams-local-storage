@@ -13,6 +13,9 @@ public class User {
     @JsonProperty("bucket_id")
     private Integer bucketId;
 
+    @JsonProperty("phone_number")
+    private String phoneNumber;
+
     @JsonProperty("first_name")
     private String firstName;
 
