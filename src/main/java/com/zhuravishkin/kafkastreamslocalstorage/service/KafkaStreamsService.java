@@ -12,13 +12,13 @@ import java.util.Properties;
 
 @Service
 public class KafkaStreamsService {
-    private final KafkaStreamsConfiguration kafkaStreamsConfiguration;
+    private final KafkaStreamsConfiguration kStreamsConfigs;
     private final StreamsBuilder streamsBuilder;
     private final KafkaStreamsTopology kafkaStreamsTopology;
 
-    public KafkaStreamsService(KafkaStreamsConfiguration kafkaStreamsConfiguration, StreamsBuilder streamsBuilder,
+    public KafkaStreamsService(KafkaStreamsConfiguration kStreamsConfigs, StreamsBuilder streamsBuilder,
                                KafkaStreamsTopology kafkaStreamsTopology) {
-        this.kafkaStreamsConfiguration = kafkaStreamsConfiguration;
+        this.kStreamsConfigs = kStreamsConfigs;
         this.streamsBuilder = streamsBuilder;
         this.kafkaStreamsTopology = kafkaStreamsTopology;
     }
@@ -33,8 +33,10 @@ public class KafkaStreamsService {
 
     public void streamsStart(Properties properties) {
         kafkaStreamsTopology.kStream(streamsBuilder, "src-topic", "out-topic");
-        KafkaStreams kafkaStreams = new KafkaStreams(streamsBuilder.build(properties),
-                kafkaStreamsConfiguration.asProperties());
+        KafkaStreams kafkaStreams = new KafkaStreams(
+                streamsBuilder.build(properties),
+                kStreamsConfigs.asProperties()
+        );
         kafkaStreams.start();
     }
 }
