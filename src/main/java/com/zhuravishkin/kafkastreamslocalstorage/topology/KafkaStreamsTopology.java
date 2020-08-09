@@ -25,11 +25,15 @@ public class KafkaStreamsTopology {
         this.userSerde = userSerde;
     }
 
-    public Topology kStream(StreamsBuilder kStreamBuilder, String inputTopicName, String outputTopicName) {
+    public Topology kStream(StreamsBuilder kStreamBuilder,
+                            String inputTopicName,
+                            String outputTopicName,
+                            String throughTopicName) {
         kStreamBuilder
                 .stream(inputTopicName, Consumed.with(Serdes.String(), Serdes.String()))
                 .mapValues(this::getUserFromString)
                 .selectKey(numberAsKey)
+                .through(throughTopicName, Produced.with(Serdes.String(), userSerde))
                 .to(outputTopicName, Produced.with(Serdes.String(), userSerde));
         return kStreamBuilder.build();
     }
@@ -41,6 +45,7 @@ public class KafkaStreamsTopology {
         } catch (JsonProcessingException e) {
             log.error(e.getMessage(), e);
         }
+        log.info("the message is processed");
         return user;
     }
 }

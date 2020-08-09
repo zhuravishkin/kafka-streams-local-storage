@@ -48,8 +48,9 @@ class KafkaStreamsTopologyTest {
     void setUp() {
         String inputTopicName = UUID.randomUUID().toString();
         String outputTopicName = UUID.randomUUID().toString();
+        String throughTopicName = UUID.randomUUID().toString();
         TopologyTestDriver topologyTestDriver = new TopologyTestDriver(
-                kafkaStreamsTopology.kStream(streamsBuilder, inputTopicName, outputTopicName),
+                kafkaStreamsTopology.kStream(streamsBuilder, inputTopicName, outputTopicName, throughTopicName),
                 kafkaStreamsConfiguration.asProperties()
         );
         inputTopic = topologyTestDriver.createInputTopic(

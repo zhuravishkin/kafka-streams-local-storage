@@ -32,7 +32,12 @@ public class KafkaStreamsService {
     }
 
     public void streamsStart(Properties properties) {
-        kafkaStreamsTopology.kStream(streamsBuilder, "src-topic", "out-topic");
+        kafkaStreamsTopology.kStream(
+                streamsBuilder,
+                "src-topic",
+                "out-topic",
+                "sectionalization"
+        );
         KafkaStreams kafkaStreams = new KafkaStreams(
                 streamsBuilder.build(properties),
                 kStreamsConfigs.asProperties()
