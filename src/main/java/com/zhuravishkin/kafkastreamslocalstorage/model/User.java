@@ -7,12 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User {
-    @JsonProperty("profile_id")
-    private Integer profileId;
-
-    @JsonProperty("bucket_id")
-    private Integer bucketId;
-
     @JsonProperty("phone_number")
     private String phoneNumber;
 
@@ -21,6 +15,9 @@ public class User {
 
     @JsonProperty("sur_name")
     private String surName;
+
+    @JsonProperty("balance")
+    private Integer balance;
 
     @JsonProperty("event_time")
     private Long eventTime;

@@ -1,16 +1,21 @@
 package com.zhuravishkin.kafkastreamslocalstorage.topology;
 
+import com.zhuravishkin.kafkastreamslocalstorage.model.User;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
@@ -26,12 +31,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(MockitoExtension.class)
 @Slf4j
 class KafkaStreamsTopologyTest {
-    @Autowired
+    @SpyBean
     private KafkaStreamsConfiguration kafkaStreamsConfiguration;
     @SpyBean
     private KafkaStreamsTopology kafkaStreamsTopology;
-    @Autowired
+    @SpyBean
     private StreamsBuilder streamsBuilder;
+    @SpyBean
+    private Serde<User> userSerde;
     private String inputString;
     private TestInputTopic<String, String> inputTopic;
     private TestOutputTopic<String, String> outputTopic;
@@ -46,11 +53,13 @@ class KafkaStreamsTopologyTest {
 
     @BeforeEach
     void setUp() {
+        KeyValueBytesStoreSupplier storeSupplier = Stores.inMemoryKeyValueStore("test");
+        StoreBuilder<KeyValueStore<String, User>> storeBuilder = Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), userSerde);
         String inputTopicName = UUID.randomUUID().toString();
         String outputTopicName = UUID.randomUUID().toString();
         String throughTopicName = UUID.randomUUID().toString();
         TopologyTestDriver topologyTestDriver = new TopologyTestDriver(
-                kafkaStreamsTopology.kStream(streamsBuilder, inputTopicName, outputTopicName, throughTopicName),
+                kafkaStreamsTopology.kStream(streamsBuilder, storeBuilder, inputTopicName, outputTopicName, throughTopicName),
                 kafkaStreamsConfiguration.asProperties()
         );
         inputTopic = topologyTestDriver.createInputTopic(
