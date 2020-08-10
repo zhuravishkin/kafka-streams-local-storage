@@ -50,13 +50,24 @@ public class KafkaStreamsConfig {
     }
 
     @Bean
+    public Map<String, String> changeLogConfigs() {
+        Map<String, String> changeLogConfigs = new HashMap<>();
+        changeLogConfigs.put("retention.ms", "172800000");
+        changeLogConfigs.put("retention.bytes", "100000000");
+        changeLogConfigs.put("cleanup.policy", "compact,delete");
+        return changeLogConfigs;
+    }
+
+    @Bean
     public StoreBuilder<KeyValueStore<String, User>> storeBuilder() {
         KeyValueBytesStoreSupplier storeSupplier = Stores.inMemoryKeyValueStore(STATE_STORE_NAME);
-        return Stores.keyValueStoreBuilder(
+        StoreBuilder<KeyValueStore<String, User>> keyValueStoreStoreBuilder = Stores.keyValueStoreBuilder(
                 storeSupplier,
                 Serdes.String(),
                 userSerde()
         );
+        keyValueStoreStoreBuilder.withLoggingEnabled(changeLogConfigs());
+        return keyValueStoreStoreBuilder;
     }
 
     @Bean
