@@ -12,6 +12,7 @@ import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,21 +28,26 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
-@ExtendWith(MockitoExtension.class)
 @Slf4j
+@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class KafkaStreamsTopologyTest {
     @SpyBean
-    private KafkaStreamsConfiguration kafkaStreamsConfiguration;
+    private KafkaStreamsConfiguration kStreamsConfigs;
+
     @SpyBean
     private KafkaStreamsTopology kafkaStreamsTopology;
+
     @SpyBean
     private StreamsBuilder streamsBuilder;
+
     @SpyBean
     private Serde<User> userSerde;
+
     private String inputString;
     private TestInputTopic<String, String> inputTopic;
     private TestOutputTopic<String, String> outputTopic;
+    private TopologyTestDriver topologyTestDriver;
 
     {
         try {
@@ -58,9 +64,9 @@ class KafkaStreamsTopologyTest {
         String inputTopicName = UUID.randomUUID().toString();
         String outputTopicName = UUID.randomUUID().toString();
         String throughTopicName = UUID.randomUUID().toString();
-        TopologyTestDriver topologyTestDriver = new TopologyTestDriver(
+        topologyTestDriver = new TopologyTestDriver(
                 kafkaStreamsTopology.kStream(streamsBuilder, storeBuilder, inputTopicName, outputTopicName, throughTopicName),
-                kafkaStreamsConfiguration.asProperties()
+                kStreamsConfigs.asProperties()
         );
         inputTopic = topologyTestDriver.createInputTopic(
                 inputTopicName,
@@ -74,8 +80,13 @@ class KafkaStreamsTopologyTest {
         );
     }
 
+    @AfterEach
+    void tearDown() {
+        topologyTestDriver.close();
+    }
+
     @Test
-    void kStream() {
+    void topologyTest() {
         inputTopic.pipeInput(inputString);
         log.warn(outputTopic.readValue());
         assertTrue(outputTopic.isEmpty());

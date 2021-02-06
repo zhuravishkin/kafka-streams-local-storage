@@ -16,8 +16,8 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
+@Component
 public class KafkaStreamsTopology {
     private final ObjectMapper objectMapper;
     private final Serde<User> userSerde;
