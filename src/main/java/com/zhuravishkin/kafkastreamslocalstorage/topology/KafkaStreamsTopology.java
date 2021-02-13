@@ -3,15 +3,14 @@ package com.zhuravishkin.kafkastreamslocalstorage.topology;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhuravishkin.kafkastreamslocalstorage.model.User;
+import com.zhuravishkin.kafkastreamslocalstorage.service.KTableValueJoiner;
 import com.zhuravishkin.kafkastreamslocalstorage.service.KafkaStreamsTransformer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 public class KafkaStreamsTopology {
     private final ObjectMapper objectMapper;
     private final Serde<User> userSerde;
-    private final KeyValueMapper<String, User, String> numberAsKey = (key, value) -> value.getPhoneNumber();
     private static final String STATE_STORE_NAME = "stateStore";
 
     public KafkaStreamsTopology(ObjectMapper objectMapper, Serde<User> userSerde) {
@@ -32,15 +30,19 @@ public class KafkaStreamsTopology {
     public Topology kStream(StreamsBuilder kStreamBuilder,
                             StoreBuilder<KeyValueStore<String, User>> storeBuilder,
                             String inputTopicName,
-                            String outputTopicName,
-                            String throughTopicName) {
+                            String outputTopicName) {
         kStreamBuilder.addStateStore(storeBuilder);
+
+        KTable<String, User> kTable = kStreamBuilder
+                .table("streamsApplicationId-stateStore-changelog", Consumed.with(Serdes.String(), userSerde), Materialized.as(STATE_STORE_NAME));
+
         kStreamBuilder
                 .stream(inputTopicName, Consumed.with(Serdes.String(), Serdes.String()))
                 .mapValues(this::getUserFromString)
-                .selectKey(numberAsKey)
-                .through(throughTopicName, Produced.with(Serdes.String(), userSerde))
+                .repartition(Repartitioned.with(Serdes.String(), userSerde).withName("repartition"))
                 .transformValues(() -> new KafkaStreamsTransformer(STATE_STORE_NAME), STATE_STORE_NAME)
+                .leftJoin(kTable, new KTableValueJoiner())
+                .filter((key, value) -> value != null)
                 .to(outputTopicName, Produced.with(Serdes.String(), userSerde));
         return kStreamBuilder.build();
     }

@@ -43,8 +43,7 @@ public class KafkaStreamsService {
                 streamsBuilder,
                 storeBuilder,
                 "src-topic",
-                "out-topic",
-                "sectionalization"
+                "out-topic"
         );
         KafkaStreams kafkaStreams = new KafkaStreams(
                 streamsBuilder.build(properties),

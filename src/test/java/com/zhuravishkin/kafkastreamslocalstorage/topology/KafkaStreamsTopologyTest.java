@@ -63,9 +63,8 @@ class KafkaStreamsTopologyTest {
         StoreBuilder<KeyValueStore<String, User>> storeBuilder = Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), userSerde);
         String inputTopicName = UUID.randomUUID().toString();
         String outputTopicName = UUID.randomUUID().toString();
-        String throughTopicName = UUID.randomUUID().toString();
         topologyTestDriver = new TopologyTestDriver(
-                kafkaStreamsTopology.kStream(streamsBuilder, storeBuilder, inputTopicName, outputTopicName, throughTopicName),
+                kafkaStreamsTopology.kStream(streamsBuilder, storeBuilder, inputTopicName, outputTopicName),
                 kStreamsConfigs.asProperties()
         );
         inputTopic = topologyTestDriver.createInputTopic(
