@@ -30,16 +30,19 @@ public class KafkaStreamsTopology {
     public Topology kStream(StreamsBuilder kStreamBuilder,
                             StoreBuilder<KeyValueStore<String, User>> storeBuilder,
                             String inputTopicName,
-                            String outputTopicName) {
+                            String outputTopicName,
+                            String kTableTopicName,
+                            String kTableStoreName,
+                            String repartitionTopicName) {
         kStreamBuilder.addStateStore(storeBuilder);
 
         KTable<String, User> kTable = kStreamBuilder
-                .table("streamsApplicationId-stateStore-changelog", Consumed.with(Serdes.String(), userSerde), Materialized.as(STATE_STORE_NAME));
+                .table(kTableTopicName, Consumed.with(Serdes.String(), userSerde), Materialized.as(kTableStoreName));
 
         kStreamBuilder
                 .stream(inputTopicName, Consumed.with(Serdes.String(), Serdes.String()))
                 .mapValues(this::getUserFromString)
-                .repartition(Repartitioned.with(Serdes.String(), userSerde).withName("repartition"))
+                .repartition(Repartitioned.with(Serdes.String(), userSerde).withName(repartitionTopicName))
                 .transformValues(() -> new KafkaStreamsTransformer(STATE_STORE_NAME), STATE_STORE_NAME)
                 .leftJoin(kTable, new KTableValueJoiner())
                 .filter((key, value) -> value != null)

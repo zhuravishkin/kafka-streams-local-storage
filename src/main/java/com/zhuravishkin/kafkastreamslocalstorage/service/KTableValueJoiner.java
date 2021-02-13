@@ -10,6 +10,7 @@ public class KTableValueJoiner implements ValueJoiner<User, User, User> {
     public User apply(User current, User stored) {
         if (stored == null) return null;
         log.info(stored.toString());
+        current.setBalance(current.getBalance() + stored.getBalance());
         return current;
     }
 }

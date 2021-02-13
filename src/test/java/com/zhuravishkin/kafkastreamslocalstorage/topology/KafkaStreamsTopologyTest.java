@@ -45,13 +45,17 @@ class KafkaStreamsTopologyTest {
     private Serde<User> userSerde;
 
     private String inputString;
+    private String valueJoinerString;
+
+    private TopologyTestDriver topologyTestDriver;
     private TestInputTopic<String, String> inputTopic;
     private TestOutputTopic<String, String> outputTopic;
-    private TopologyTestDriver topologyTestDriver;
+    private TestInputTopic<String, String> valueJoinerTopic;
 
     {
         try {
             inputString = Files.readString(Paths.get("src/test/resources/User.json"));
+            valueJoinerString = Files.readString(Paths.get("src/test/resources/User.json"));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
@@ -63,8 +67,11 @@ class KafkaStreamsTopologyTest {
         StoreBuilder<KeyValueStore<String, User>> storeBuilder = Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), userSerde);
         String inputTopicName = UUID.randomUUID().toString();
         String outputTopicName = UUID.randomUUID().toString();
+        String kTableTopicName = UUID.randomUUID().toString();
+        String kTableStoreName = UUID.randomUUID().toString();
+        String repartitionTopicName = UUID.randomUUID().toString();
         topologyTestDriver = new TopologyTestDriver(
-                kafkaStreamsTopology.kStream(streamsBuilder, storeBuilder, inputTopicName, outputTopicName),
+                kafkaStreamsTopology.kStream(streamsBuilder, storeBuilder, inputTopicName, outputTopicName, kTableTopicName, kTableStoreName, repartitionTopicName),
                 kStreamsConfigs.asProperties()
         );
         inputTopic = topologyTestDriver.createInputTopic(
@@ -77,6 +84,11 @@ class KafkaStreamsTopologyTest {
                 Serdes.String().deserializer(),
                 Serdes.String().deserializer()
         );
+        valueJoinerTopic = topologyTestDriver.createInputTopic(
+                kTableTopicName,
+                Serdes.String().serializer(),
+                Serdes.String().serializer()
+        );
     }
 
     @AfterEach
@@ -86,7 +98,8 @@ class KafkaStreamsTopologyTest {
 
     @Test
     void topologyTest() {
-        inputTopic.pipeInput(inputString);
+        valueJoinerTopic.pipeInput("79306661111", valueJoinerString);
+        inputTopic.pipeInput("79306661111", inputString);
         log.warn(outputTopic.readValue());
         assertTrue(outputTopic.isEmpty());
     }

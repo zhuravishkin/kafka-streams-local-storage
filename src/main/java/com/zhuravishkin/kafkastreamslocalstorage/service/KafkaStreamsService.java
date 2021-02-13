@@ -43,7 +43,10 @@ public class KafkaStreamsService {
                 streamsBuilder,
                 storeBuilder,
                 "src-topic",
-                "out-topic"
+                "out-topic",
+                "streamsApplicationId-stateStore-changelog",
+                "kTableStore",
+                "repartition"
         );
         KafkaStreams kafkaStreams = new KafkaStreams(
                 streamsBuilder.build(properties),
